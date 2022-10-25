@@ -2,21 +2,21 @@ import re
 import argparse
 import pymysql
 
-parser = argparse.ArgumentParser(description='对比mysql数据库结构,生成差异sql')
-parser.add_argument('--host', type=str, required=True, help='目标数据库地址')
-parser.add_argument('--port', type=int, default=3306, help='目标数据库端口')
-parser.add_argument('--db', type=str, required=True, help='目标数据库名称')
-parser.add_argument('--username', type=str, required=True, help='目标数据库用户名')
-parser.add_argument('--password', type=str, required=True, help='目标数据库密码')
+parser = argparse.ArgumentParser(description='说明：对比mysql数据库结构,生成差异sql, 删表/删字段/索引操作会自动加注释，需要自行判断')
+parser.add_argument('-H', '--host', type=str, required=True, help='目标数据库地址')
+parser.add_argument('-P', '--port', type=int, default=3306, help='目标数据库端口')
+parser.add_argument('-d', '--db', type=str, required=True, help='目标数据库名称')
+parser.add_argument('-u', '--username', type=str, required=True, help='目标数据库用户名')
+parser.add_argument('-p', '--password', type=str, required=True, help='目标数据库密码')
 
 
-parser.add_argument('--ref-host', type=str, required=True, help='参考数据库地址')
-parser.add_argument('--ref-port', type=int, default=3306, help='参考数据库端口')
-parser.add_argument('--ref-db', type=str, required=True, help='参考数据库名称')
-parser.add_argument('--ref-username', type=str, required=True, help='参考数据库用户名')
-parser.add_argument('--ref-password', type=str, required=True, help='参考数据库密码')
+parser.add_argument('-RH', '--ref-host', type=str, required=True, help='参考数据库地址')
+parser.add_argument('-RP', '--ref-port', type=int, default=3306, help='参考数据库端口')
+parser.add_argument('-rd', '--ref-db', type=str, required=True, help='参考数据库名称')
+parser.add_argument('-ru', '--ref-username', type=str, required=True, help='参考数据库用户名')
+parser.add_argument('-rp', '--ref-password', type=str, required=True, help='参考数据库密码')
 
-parser.add_argument('--ignore-comment', type=bool, default=False, help='是否忽略注释，默认不忽略')
+parser.add_argument('--ignore-comment', action='store_true', help='是否忽略注释，默认不忽略')
 
 args = parser.parse_args()
 
@@ -234,20 +234,20 @@ change_tables = [t for t in tables if t in reference_tables]
 
 create_table_sqls = make_create_table_sql(add_tables, cursor_reference)
 if len(create_table_sqls) > 0:
-    print("------------create tables-------------")
+    print("-- ----------create tables-------------")
     print('\n'.join(create_table_sqls))
-    print("--------------------------------------")
+    print("-- ------------------------------------")
 
 # 生成删表语句
 
 drop_table_sqls = make_drop_table_sql(drop_tables)
 if len(drop_table_sqls) > 0:
-    print("-------------drop tables-- -----------")
+    print("-- -----------drop tables-- -----------")
     print('\n'.join(drop_table_sqls))
-    print("--------------------------------------")
+    print("-- ------------------------------------")
 
 
-print("------------modify tables-------------")
+print("-- ----------modify tables-------------")
 for change_table in change_tables:
     columns = get_table_columns(database, change_table, cursor)
     reference_columns = get_table_columns(reference_database, change_table, cursor_reference)
@@ -280,11 +280,11 @@ for change_table in change_tables:
 
     sql_list = add_column_sqls + drop_column_sqls + change_column_sqls + add_index_sqls + drop_index_sqls + change_index_sqls
     if len(sql_list) > 0:
-        print("------------modify table {}-------------".format(change_table))
+        print("-- ----------modify table {}-------------".format(change_table))
         print('\n'.join(sql_list))
-        print("--------------------------------------")
+        print("-- ------------------------------------")
 
-print("--------------------------------------")
+print("-- ------------------------------------")
  
 # 关闭数据库连接
 db.close()

@@ -34,6 +34,7 @@ reference_database=args.ref_db
 reference_username=args.ref_username
 reference_password=args.ref_password
 ignore_comment=args.ignore_comment
+with_origin=args.with_origin
 
 
 DEFAULT_KEY_WORDS = [
@@ -91,7 +92,11 @@ def make_change_column_sql(table, change_columns, reference_columns_dict, column
         reference_sql = make_sql_from_column_detail(reference_column_detail)
         if sql != reference_sql:
             full_sql = "ALTER TABLE `{}`.`{}` MODIFY COLUMN {};".format(database, table, reference_sql)
+            if with_origin:
+                raw_sql = "-- RAW: {}".format(sql)
+                res.append(raw_sql)
             res.append(full_sql)
+            res.append("\n")
     return res
 
 
@@ -145,12 +150,12 @@ def get_table_indexes(change_table, cursor):
     '''
         返回格式：
         {
-            'PRIMARY': 'ALTER TABLE device_damage ADD PRIMARY KEY (id, user_id);', 
-            'user_id': 'ALTER TABLE device_damage ADD INDEX user_id (user_id, device_id);', 
-            'user_id_2': 'ALTER TABLE device_damage ADD INDEX user_id_2 (user_id);', 
-            'library_id': 'ALTER TABLE device_damage ADD INDEX library_id (library_id);', 
-            'created_at': 'ALTER TABLE device_damage ADD INDEX created_at (created_at);', 
-            'content': 'ALTER TABLE device_damage ADD INDEX content (content);'
+            'PRIMARY': 'ADD PRIMARY KEY (id, user_id);', 
+            'user_id': 'ADD INDEX user_id (user_id, device_id);', 
+            'user_id_2': 'ADD INDEX user_id_2 (user_id);', 
+            'library_id': 'ADD INDEX library_id (library_id);', 
+            'created_at': 'ADD INDEX created_at (created_at);', 
+            'content': 'ADD INDEX content (content);'
         }
     '''
     sql = 'show index from {}'.format(change_table)
@@ -186,10 +191,10 @@ def get_index_segment(index_columns):
         return "ADD FULLTEXT INDEX {} ({});".format(data['index_name'], columns)
     return "ADD INDEX {} ({});".format(data['index_name'], columns)
 
-def make_add_index_sql(add_indexes, indexes):
+def make_add_index_sql(change_table, add_indexes, indexes):
     res = []
     for key in add_indexes:
-        res.append("-- " + indexes.get(key))
+        res.append("-- ALTER TABLE `{}`.`{}` {}".format(indexes.get(key)))
     return res
 
 def make_drop_index_sql(change_table, drop_indexes):
@@ -274,7 +279,7 @@ for change_table in change_tables:
     drop_indexes = [d for d in indexes.keys() if d not in reference_indexes.keys()]
     change_indexes = [d for d in indexes.keys() if d in reference_indexes.keys()]
     # 生成索引新增语句
-    add_index_sqls = make_add_index_sql(add_indexes, reference_indexes)
+    add_index_sqls = make_add_index_sql(change_table, add_indexes, reference_indexes)
     # 生成索引删除语句
     drop_index_sqls = make_drop_index_sql(change_table, drop_indexes)
     # 索引变更

@@ -10,14 +10,15 @@ parser.add_argument('--username', type=str, required=True, help='目标数据库
 parser.add_argument('--password', type=str, required=True, help='目标数据库密码')
 
 
-parser.add_argument('--ref_host', type=str, required=True, help='参考数据库地址')
-parser.add_argument('--ref_port', type=int, default=3306, help='参考数据库端口')
-parser.add_argument('--ref_db', type=str, required=True, help='参考数据库名称')
-parser.add_argument('--ref_username', type=str, required=True, help='参考数据库用户名')
-parser.add_argument('--ref_password', type=str, required=True, help='参考数据库密码')
+parser.add_argument('--ref-host', type=str, required=True, help='参考数据库地址')
+parser.add_argument('--ref-port', type=int, default=3306, help='参考数据库端口')
+parser.add_argument('--ref-db', type=str, required=True, help='参考数据库名称')
+parser.add_argument('--ref-username', type=str, required=True, help='参考数据库用户名')
+parser.add_argument('--ref-password', type=str, required=True, help='参考数据库密码')
+
+parser.add_argument('--ignore-comment', type=bool, default=False, help='是否忽略注释，默认不忽略')
 
 args = parser.parse_args()
-print(args)
 
 host=args.host  
 port=args.port
@@ -30,6 +31,7 @@ reference_port=args.ref_port
 reference_database=args.ref_db
 reference_username=args.ref_username
 reference_password=args.ref_password
+ignore_comment=args.ignore_comment
 
 
 DEFAULT_KEY_WORDS = [
@@ -115,7 +117,8 @@ def make_sql_from_column_detail(column_detail):
         sql_list.append(column_detail[4].replace("DEFAULT_GENERATED", ""))
     if column_detail[5] != '':
         # add comment
-        sql_list.append("COMMENT {}".format(repr(column_detail[5])))
+        if not ignore_comment:
+            sql_list.append("COMMENT {}".format(repr(column_detail[5])))
     return " ".join(sql_list)
 
 

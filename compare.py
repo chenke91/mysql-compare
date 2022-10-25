@@ -2,6 +2,8 @@ import re
 import argparse
 import pymysql
 
+__version__ = "1.0.0"
+
 parser = argparse.ArgumentParser(description='说明：对比mysql数据库结构,生成差异sql, 删表/删字段/索引操作会自动加注释，需要自行判断')
 parser.add_argument('-H', '--host', type=str, required=True, help='目标数据库地址')
 parser.add_argument('-P', '--port', type=int, default=3306, help='目标数据库端口')

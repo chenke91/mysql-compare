@@ -1,5 +1,3 @@
-FROM python:alpine3.16
+FROM chenke91/mysql-compare-base
 COPY ./compare.py /data/
-COPY ./requirements.txt /data/
-RUN pip install -r /data/requirements.txt
 ENTRYPOINT ["python", "/data/compare.py"]
